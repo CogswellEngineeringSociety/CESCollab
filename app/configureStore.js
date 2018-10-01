@@ -6,7 +6,27 @@ import { createStore, applyMiddleware, compose } from 'redux';
 import { fromJS } from 'immutable';
 import { routerMiddleware } from 'react-router-redux';
 import createSagaMiddleware from 'redux-saga';
+import firebase from 'firebase';
+
 import createReducer from './reducers';
+
+// Don't need redux stuff, may not even need firebase in state, that was a little wierd
+// but this being in configure store makes no sense otherwise.
+
+// Reminder to self, get this information from environment variables.
+const fbConfig = {
+  apiKey: process.env.FB_API_KEY,
+  authDomain: process.env.FB_AUTH_DOMAIN,
+  databaseURL: process.env.FB_DATABASE_URL,
+  projectId: process.env.FB_PROJECT_ID,
+  storageBucket: process.env.FB_STORAGE_BUCKET,
+  messagingSenderId: process.env.FB_MESSENGING_ID,
+};
+
+firebase.initializeApp(fbConfig);
+const firestore = firebase.firestore();
+const settings = { /* your settings... */ timestampsInSnapshots: true };
+firestore.settings(settings);
 
 const sagaMiddleware = createSagaMiddleware();
 
