@@ -7,7 +7,7 @@ import firebase from 'firebase';
 function* updateRoomLanguage(payload) {
   const { language, roomId } = payload;
 
-  const firestoreRef = firebase.firestore();
+  const firestore = firebase.firestore();
   // Okay, instead of two collections public and uid, there will instead be owner property for the document.
   const roomRef = firestore.collection('CESCollabs').doc(roomId);
 

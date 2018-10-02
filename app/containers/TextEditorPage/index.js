@@ -160,16 +160,14 @@ class TextEditorPage extends Component {
     // Will have save button, that will have them log in, otherwise auto saves.
     return (
       <div>
-        <p> Owner: {owner} </p>
         {/* Putting these for testing real time */}
-        <label htmlFor="textEditor"> Editor </label>
 
         {/*Fix error on input switchign from being controlled and uncontrolled*/}
         <textarea
+          style={{border:"2px solid black"}}
           id="textEditor"
           type="text"
           onChange={evt => {
-            console.log("value", evt.target.value);
             onTextUpdate(evt.target.value, this.props.match.params.roomId);
           }}
           value={this.props.content}
