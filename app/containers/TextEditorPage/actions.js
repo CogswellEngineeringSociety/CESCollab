@@ -50,10 +50,12 @@ function finishedTypingWord() {
   };
 }
 
-function updateEditorText(newText) {
+function updateEditorText(newText, roomId) {
+
   return {
     type: UPDATE_EDITOR_TEXT,
     newText,
+    roomId
   };
 }
 
@@ -64,10 +66,11 @@ function editorTextUpdated(newText) {
   };
 }
 
-function languageChanged(language) {
+function languageChanged(language,roomId) {
   return {
     type: LANGUAGE_CHANGED,
     language,
+    roomId,
   };
 }
 

@@ -46,21 +46,24 @@ class TextEditorPage extends Component {
     const newRoom = this.props.newRoom;
     const firebaseRef = this.props.firebase;
     // Uid will be generated in route if new.
+    console.log("props", this.props);
     const roomId = this.props.match.params.roomId;
 
-    const roomRef = null;
+    const roomRef = firebaseRef
+    .firestore()
+    .collection('CESCollabs')
+    .doc(roomId);
     // If new room then make new room in public or under uid of logge din user.
 
-    // If not new room, just go straight to setting listener.
+    // If not new room, just go straight to setting lisnpm runtener.
     if (newRoom) {
       const currentUser = firebaseRef.auth().currentUser;
 
-      const roomRef = firebaseRef
-        .firestore()
-        .collection('CESCollabs')
-        .doc(roomId);
+       
 
       if (!currentUser) {
+
+        console.log("Should be here");
         const tomorrow = new Date();
         tomorrow.setDate(Date.now() + 1);
 
@@ -102,8 +105,9 @@ class TextEditorPage extends Component {
         // But see now gotta reupdate this listener.
         if (data.content != this.props.content) {
           this.props.onTextUpdated(data.content);
-        } else if (data.language != this.props.content) {
-          this.props.onLanguageChange(data.language);
+        } else if (data.language != this.props.language) {
+          console.log("always happening?");
+          this.props.onLanguageChange(data.language, this.props.match.params.roomId);
         } else if (data.owner != this.props.owner) {
           this.props.onOwnerUpdated(data.owner);
         }
@@ -137,10 +141,7 @@ class TextEditorPage extends Component {
     // need to keep that in state. This is key what happens, when this happens. Should it always expire if created
     // while logged out? Actually I'll have login and log out go to new page. That way only need to check currentUser
     // v.s owner.
-    if (
-      prevProps.firebase.auth().currentUser == null &&
-      this.props.firebase.auth().currentUser
-    ) {
+    if ( prevProps.firebase.auth().currentUser == null && this.props.firebase.auth().currentUser) {
     }
     // What if other way around? Owner of room you're in shouldn't actually change just cause logged out, but you do lose priveleges.
     // Either way do need to store owner in state, but unless transfer ownership wit wouldn't get updated.
@@ -155,19 +156,23 @@ class TextEditorPage extends Component {
       onTextUpdated,
     } = this.props;
 
+    console.log("content",content);
     // Will have save button, that will have them log in, otherwise auto saves.
     return (
       <div>
         <p> Owner: {owner} </p>
         {/* Putting these for testing real time */}
         <label htmlFor="textEditor"> Editor </label>
-        <input
+
+        {/*Fix error on input switchign from being controlled and uncontrolled*/}
+        <textarea
           id="textEditor"
           type="text"
           onChange={evt => {
-            onTextUpdate(evt.target.value);
+            console.log("value", evt.target.value);
+            onTextUpdate(evt.target.value, this.props.match.params.roomId);
           }}
-          value={content}
+          value={this.props.content}
         />
       </div>
     );
@@ -194,12 +199,18 @@ const mapStateToProps = createStructuredSelector({
 function mapDispatchToProps(dispatch) {
   return {
     onOwnerUpdated: owner => dispatch(ownerUpdated(owner)),
-    onLanguageChange: language => dispatch(languageChanged(language)),
+    onLanguageChange: (language, roomId) => dispatch(languageChanged(language,roomId)),
 
     // Dispatches when onChange on textField happens to update database.
-    onTextUpdate: text => dispatch(updateEditorText(text)),
-
-    onTextUpdated: text => dispatch(editorTextUpdated(text)),
+    onTextUpdate: (text,roomId) => {
+      
+      console.log("text",text);
+      return dispatch(updateEditorText(text, roomId));
+    },
+    onTextUpdated: text => {
+      
+      dispatch(editorTextUpdated(text))
+    },
 
     onValidLanguagesUpdated: languages =>
       dispatch(validLanguagesUpdated(languages)),
