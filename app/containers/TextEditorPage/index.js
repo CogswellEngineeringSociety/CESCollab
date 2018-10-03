@@ -5,12 +5,13 @@ import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { makeSelectFirebase } from 'containers/App/selectors';
+import { Link } from 'react-router-dom';
 
 import injectReducer from '../../utils/injectReducer';
 import injectSaga from '../../utils/injectSaga';
 import saga from './saga';
 import reducer from './reducer';
-
+import UIDGenerator from 'uid-generator';
 
 import {
   makeSelectContent,
@@ -38,6 +39,24 @@ class TextEditorPage extends Component {
       settingsOpen: false,
       terminalOpen: false,
     };
+
+    this.openNewShare = this.openNewShare.bind(this);
+
+    this.roomListenerUnsub = null;
+    this.unsubValidLanguages = null;
+  }
+
+  //Generates uid
+  openNewShare() {
+
+    const generator = new UIDGenerator();
+
+    generator.generate()
+      .then( uid => {
+
+        //This works.
+        this.props.history.push({pathname: "/text-editor/" + uid, state: {isNew: true}});
+      });
   }
 
   componentDidMount() {
@@ -58,6 +77,7 @@ class TextEditorPage extends Component {
     // If not new room, just go straight to setting lisnpm runtener.
     if (newRoom) {
       const currentUser = firebaseRef.auth().currentUser;
+
 
        
 
@@ -88,6 +108,22 @@ class TextEditorPage extends Component {
         });
       }
     }
+    else{
+
+      //So if not new room, then check if exists
+      roomRef.get().then(doc => {
+
+        //If doesn't exist, then say room doesn't exist.
+        if (!doc.exists){
+
+
+          this.history.push("NotFound");
+
+        }
+
+      });
+
+    }
 
     const options = {
       // For changes to alrady added posts.
@@ -95,15 +131,17 @@ class TextEditorPage extends Component {
     };
 
     // Sets listener to room document.
-    roomRef.onSnapshot(options, doc => {
+    this.roomListenerUnsub = roomRef.onSnapshot(options, doc => {
       if (doc.exists) {
         // Compares content, cause if only owner changed no need to render.
 
+        console.log("doc", doc.data());
         const data = doc.data();
 
         // If either of these fields change, then trigger update for that respective field.
         // But see now gotta reupdate this listener.
         if (data.content != this.props.content) {
+          console.log("I should be happening");
           this.props.onTextUpdated(data.content);
         } else if (data.language != this.props.language) {
           console.log("always happening?");
@@ -126,7 +164,7 @@ class TextEditorPage extends Component {
 
     // sets listenter to update valid languages.
 
-    validLanguageRef.onSnapshot(options, doc => {
+    this.unsubValidLanguages = validLanguageRef.onSnapshot(options, doc => {
       if (doc.exists) {
         // Then update the array there with array here.
         const languages = doc.data().languages;
@@ -146,6 +184,22 @@ class TextEditorPage extends Component {
     // What if other way around? Owner of room you're in shouldn't actually change just cause logged out, but you do lose priveleges.
     // Either way do need to store owner in state, but unless transfer ownership wit wouldn't get updated.
   }
+
+  componentWillUnmount(){
+
+
+    //Turns off listeners
+      if (roomListenerUnsub){
+
+        roomListenerUnsub();
+      }
+
+      if (unsubValidLanguages){
+
+        unsubValidLanguages();
+      }
+    
+  }
   render() {
     const {
       content,
@@ -158,6 +212,13 @@ class TextEditorPage extends Component {
 
     console.log("content",content);
     // Will have save button, that will have them log in, otherwise auto saves.
+
+    //If not even this loaded, don't load page yet.
+    if (validLanguages.length == 0){
+
+      return null;
+    }
+
     return (
       <div>
         {/* Putting these for testing real time */}
@@ -172,6 +233,11 @@ class TextEditorPage extends Component {
           }}
           value={this.props.content}
         />
+
+        <button onClick = {this.openNewShare}> New Collab</button>
+        
+
+
       </div>
     );
   }

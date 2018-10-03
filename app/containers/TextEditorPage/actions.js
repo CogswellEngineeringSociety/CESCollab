@@ -62,7 +62,7 @@ function updateEditorText(newText, roomId) {
 function editorTextUpdated(newText) {
   return {
     type: EDITOR_TEXT_UPDATED,
-    text: newText,
+    newText,
   };
 }
 
