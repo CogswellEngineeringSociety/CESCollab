@@ -34,7 +34,7 @@ class TextEditorPage extends Component {
   constructor(props) {
     super(props);
 
-    //Could just add this shit whne needed, but it's fine.
+    // Could just add this shit whne needed, but it's fine.
     this.state = {
       settingsOpen: false,
       terminalOpen: false,
@@ -46,17 +46,17 @@ class TextEditorPage extends Component {
     this.unsubValidLanguages = null;
   }
 
-  //Generates uid
+  // Generates uid
   openNewShare() {
-
     const generator = new UIDGenerator();
 
-    generator.generate()
-      .then( uid => {
-
-        //This works.
-        this.props.history.push({pathname: "/text-editor/" + uid, state: {isNew: true}});
+    generator.generate().then(uid => {
+      // This works.
+      this.props.history.push({
+        pathname: `/text-editor/${uid}`,
+        state: { isNew: true },
       });
+    });
   }
 
   componentDidMount() {
@@ -65,25 +65,21 @@ class TextEditorPage extends Component {
     const newRoom = this.props.newRoom;
     const firebaseRef = this.props.firebase;
     // Uid will be generated in route if new.
-    console.log("props", this.props);
     const roomId = this.props.match.params.roomId;
 
     const roomRef = firebaseRef
-    .firestore()
-    .collection('CESCollabs')
-    .doc(roomId);
+      .firestore()
+      .collection('CESCollabs')
+      .doc(roomId);
     // If new room then make new room in public or under uid of logge din user.
 
     // If not new room, just go straight to setting lisnpm runtener.
     if (newRoom) {
       const currentUser = firebaseRef.auth().currentUser;
 
-
-       
-
       if (!currentUser) {
 
-        console.log("Should be here");
+        
         const tomorrow = new Date();
         tomorrow.setDate(Date.now() + 1);
 
@@ -107,22 +103,14 @@ class TextEditorPage extends Component {
           owner: currentUser.uid,
         });
       }
-    }
-    else{
-
-      //So if not new room, then check if exists
+    } else {
+      // So if not new room, then check if exists
       roomRef.get().then(doc => {
-
-        //If doesn't exist, then say room doesn't exist.
-        if (!doc.exists){
-
-
-          this.history.push("NotFound");
-
+        // If doesn't exist, then say room doesn't exist.
+        if (!doc.exists) {
+          this.history.push('NotFound');
         }
-
       });
-
     }
 
     const options = {
@@ -135,17 +123,21 @@ class TextEditorPage extends Component {
       if (doc.exists) {
         // Compares content, cause if only owner changed no need to render.
 
-        console.log("doc", doc.data());
+        console.log('doc', doc.data());
         const data = doc.data();
 
         // If either of these fields change, then trigger update for that respective field.
         // But see now gotta reupdate this listener.
         if (data.content != this.props.content) {
-          console.log("I should be happening");
+          console.log('I should be happening');
           this.props.onTextUpdated(data.content);
         } else if (data.language != this.props.language) {
-          console.log("always happening?");
-          this.props.onLanguageChange(data.language, this.props.match.params.roomId);
+          
+          console.log('always happening?');
+          this.props.onLanguageChange(
+            data.language,
+            this.props.match.params.roomId,
+          );
         } else if (data.owner != this.props.owner) {
           this.props.onOwnerUpdated(data.owner);
         }
@@ -179,26 +171,24 @@ class TextEditorPage extends Component {
     // need to keep that in state. This is key what happens, when this happens. Should it always expire if created
     // while logged out? Actually I'll have login and log out go to new page. That way only need to check currentUser
     // v.s owner.
-    if ( prevProps.firebase.auth().currentUser == null && this.props.firebase.auth().currentUser) {
+    if (
+      prevProps.firebase.auth().currentUser == null &&
+      this.props.firebase.auth().currentUser
+    ) {
     }
     // What if other way around? Owner of room you're in shouldn't actually change just cause logged out, but you do lose priveleges.
     // Either way do need to store owner in state, but unless transfer ownership wit wouldn't get updated.
   }
 
-  componentWillUnmount(){
+  componentWillUnmount() {
+    // Turns off listeners
+    if (roomListenerUnsub) {
+      roomListenerUnsub();
+    }
 
-
-    //Turns off listeners
-      if (roomListenerUnsub){
-
-        roomListenerUnsub();
-      }
-
-      if (unsubValidLanguages){
-
-        unsubValidLanguages();
-      }
-    
+    if (unsubValidLanguages) {
+      unsubValidLanguages();
+    }
   }
   render() {
     const {
@@ -210,12 +200,11 @@ class TextEditorPage extends Component {
       onTextUpdated,
     } = this.props;
 
-    console.log("content",content);
+    console.log('content', content);
     // Will have save button, that will have them log in, otherwise auto saves.
 
-    //If not even this loaded, don't load page yet.
-    if (validLanguages.length == 0){
-
+    // If not even this loaded, don't load page yet.
+    if (validLanguages.length == 0) {
       return null;
     }
 
@@ -223,9 +212,9 @@ class TextEditorPage extends Component {
       <div>
         {/* Putting these for testing real time */}
 
-        {/*Fix error on input switchign from being controlled and uncontrolled*/}
+        {/* Fix error on input switchign from being controlled and uncontrolled */}
         <textarea
-          style={{border:"2px solid black"}}
+          style={{ border: '2px solid black' }}
           id="textEditor"
           type="text"
           onChange={evt => {
@@ -234,10 +223,7 @@ class TextEditorPage extends Component {
           value={this.props.content}
         />
 
-        <button onClick = {this.openNewShare}> New Collab</button>
-        
-
-
+        <button onClick={this.openNewShare}> New Collab</button>
       </div>
     );
   }
@@ -263,17 +249,16 @@ const mapStateToProps = createStructuredSelector({
 function mapDispatchToProps(dispatch) {
   return {
     onOwnerUpdated: owner => dispatch(ownerUpdated(owner)),
-    onLanguageChange: (language, roomId) => dispatch(languageChanged(language,roomId)),
+    onLanguageChange: (language, roomId) =>
+      dispatch(languageChanged(language, roomId)),
 
     // Dispatches when onChange on textField happens to update database.
-    onTextUpdate: (text,roomId) => {
-      
-      console.log("text",text);
+    onTextUpdate: (text, roomId) => {
+      console.log('text', text);
       return dispatch(updateEditorText(text, roomId));
     },
     onTextUpdated: text => {
-      
-      dispatch(editorTextUpdated(text))
+      dispatch(editorTextUpdated(text));
     },
 
     onValidLanguagesUpdated: languages =>

@@ -14,7 +14,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
-
 import { Switch, Route } from 'react-router-dom';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
@@ -22,15 +21,14 @@ import injectReducer from 'utils/injectReducer';
 import HomePage from 'containers/HomePage/Loadable';
 import NotFoundPage from 'containers/NotFoundPage/Loadable';
 import TextEditorPage from 'containers/TextEditorPage/Loadable';
-import {TEXT_EDITOR_PAGE} from 'paths.js';
+import { TEXT_EDITOR_PAGE } from 'paths.js';
 import reducer from './reducer';
 import { appLoaded } from './actions';
 
 class App extends Component {
   componentDidMount() {
     this.props.onAppLoaded();
-console.log(process.env);
-
+    console.log(process.env);
   }
 
   render() {
@@ -38,10 +36,18 @@ console.log(process.env);
       <div>
         <Switch>
           <Route exact path="/" component={HomePage} />
-          <Route exact path={TEXT_EDITOR_PAGE} render = {(props) => {
-            //Passing in as new room, an id, and props for url params
-            return <TextEditorPage newRoom = {true} roomId={1} {...props}/>
-          }} />
+          <Route
+            exact
+            path={TEXT_EDITOR_PAGE}
+            render={props => {
+              // Passing in as new room, an id, and props for url params
+              //So it will pass in argument to link if new or whatever
+              //Could be state passed in
+              console.log("props", props);
+              return <TextEditorPage newRoom = {props.location.state? props.location.state.isNew : false} {...props} />
+            }
+            }
+          />
           <Route component={NotFoundPage} />
         </Switch>
       </div>
@@ -55,9 +61,8 @@ App.propTypes = {
 };
 
 function mapStateToProps(state) {
-
-  if (state.get('CESCollabApp') == null) return{};
-  console.log("state",state);
+  if (state.get('CESCollabApp') == null) return {};
+  console.log('state', state);
   return {
     profile: state.get('CESCollabApp').get('profile'),
   };
@@ -73,6 +78,8 @@ const withConnect = connect(
   mapStateToProps,
   mapDispatchToProps,
 );
+
+
 const withReducer = injectReducer({ key: 'CESCollabApp', reducer });
 
 export default compose(

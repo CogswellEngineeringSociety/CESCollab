@@ -1,5 +1,5 @@
 import { fromJS } from 'immutable';
-import { LOCATION_CHANGE} from 'react-router-redux';
+import { LOCATION_CHANGE } from 'react-router-redux';
 // Add this to saga too.
 import {
   STARTED_TYPING_WORD,
@@ -32,7 +32,6 @@ export default function reducer(state = initialState, action) {
       return state.set('owner', action.owner);
 
     case LOCATION_CHANGE:
-
       return initialState;
     // Only options are valid in terms of user given, so check not needed
     case LANGUAGE_CHANGED:
@@ -46,7 +45,7 @@ export default function reducer(state = initialState, action) {
     // wait but there will always be listener to it, so updates here and updates there,
     // unless check to make sure the changes weren't made by this person, but how hard would that be?
     case EDITOR_TEXT_UPDATED:
-    console.log("Get to here reducer", action.newText);
+      console.log('Get to here reducer', action.newText);
       return state.set('content', action.newText);
 
     default:

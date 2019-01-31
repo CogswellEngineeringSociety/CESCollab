@@ -30,10 +30,21 @@ function* updateRoomText(payload) {
   const roomRef = firestore.collection('CESCollabs').doc(roomId);
 
   // Updates server
-  const response = yield 
-    roomRef.update({
-      content: newText,
+  //Should be transaction.
+
+  firestore.runTransaction( (transaction) => {
+
+    transaction.get(roomRef).then (docRef => {
+
+      if (docRef.exists){
+
+        docRef.update({
+          content:newText
+        });
+      }
+
     });
+  });
   
 
 }
